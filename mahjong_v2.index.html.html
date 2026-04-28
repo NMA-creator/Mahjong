@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d2e1a">
+<title>🀄 MJ Scorer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Georgia,serif;background:#0d2e1a;color:#f5f0e8;font-size:15px;padding-bottom:20px}
+h1{text-align:center;padding:12px 8px 4px;font-size:1.15rem;color:#e8c97a;background:#0a1f12;border-bottom:2px solid #c9a84c;letter-spacing:.06em}
+.sub{text-align:center;font-size:.72rem;color:rgba(245,240,232,.55);font-style:italic;padding:3px 0 8px;background:#0a1f12}
+.tip{margin:8px;padding:7px 10px;background:rgba(201,168,76,.12);border:1px solid #c9a84c;border-radius:6px;font-size:.75rem;color:#e8c97a;text-align:center;font-style:italic}
+.sec{margin:6px 8px;border:1px solid rgba(201,168,76,.3);border-radius:8px;overflow:hidden}
+.sh{display:flex;justify-content:space-between;align-items:center;padding:12px 12px;background:rgba(201,168,76,.18);cursor:pointer;-webkit-user-select:none;user-select:none}
+.sh:active{background:rgba(201,168,76,.3)}
+.st{font-size:.78rem;color:#e8c97a;text-transform:uppercase;letter-spacing:.05em;font-weight:bold;flex:1}
+.sr{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sp{font-size:.9rem;font-weight:bold;color:#e8c97a;min-width:24px;text-align:right}
+.arr{color:#c9a84c;font-size:.75rem;display:inline-block;transition:transform .25s}
+.sb{display:none;padding:4px 8px 8px;background:rgba(0,0,0,.2)}
+.row{border-bottom:1px solid rgba(255,255,255,.06)}
+.row:last-child{border-bottom:none}
+.rl{display:flex;align-items:flex-start;gap:10px;padding:11px 6px;cursor:pointer;width:100%;border-radius:4px;-webkit-tap-highlight-color:rgba(201,168,76,.15)}
+.rl:active{background:rgba(201,168,76,.1)}
+.rl.on{background:rgba(201,168,76,.08)}
+.box{width:26px;height:26px;min-width:26px;border:2px solid #c9a84c;border-radius:5px;background:rgba(0,0,0,.4);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0;color:#0d2e1a;transition:all .15s}
+.rl.on .box{background:#c9a84c;font-size:17px}
+.lbl{flex:1;line-height:1.35;color:#f5f0e8;font-size:.88rem}
+.note{display:block;font-size:.72rem;color:rgba(245,240,232,.5);font-style:italic;margin-top:2px}
+.pts{font-weight:bold;font-size:.95rem;color:#e8c97a;min-width:30px;text-align:right;flex-shrink:0;padding-top:2px}
+.div{padding:7px 4px 2px;font-size:.68rem;color:#c9a84c;text-transform:uppercase;letter-spacing:.07em;font-weight:bold;border-top:1px solid rgba(201,168,76,.15);margin-top:5px;opacity:.85}
+.numrow{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid rgba(255,255,255,.06)}
+.numrow:last-child{border-bottom:none}
+.ni{width:60px;background:rgba(0,0,0,.5);border:2px solid #c9a84c;border-radius:5px;color:#e8c97a;padding:6px 2px;font-size:1rem;text-align:center;flex-shrink:0;-webkit-appearance:none;appearance:none}
+.nlbl{flex:1;line-height:1.35;color:#f5f0e8;font-size:.88rem}
+footer{position:sticky;top:0;left:0;right:0;background:rgba(5,14,8,.97);border-bottom:2px solid #c9a84c;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:99}
+.tot{display:flex;align-items:baseline;gap:5px}
+.tl{font-size:.7rem;color:#c9a84c;letter-spacing:.1em}
+.tn{font-size:2.2rem;font-weight:bold;color:#e8c97a;line-height:1;text-shadow:0 0 16px rgba(201,168,76,.5)}
+.bk{font-size:.63rem;color:rgba(245,240,232,.4);flex:1;overflow:hidden;line-height:1.3;max-height:36px}
+.btn{background:#6b1414;color:#f5f0e8;border:none;border-radius:6px;padding:10px 16px;font-size:.9rem;font-weight:bold;cursor:pointer;-webkit-appearance:none;min-height:44px}
+.btn:active{background:#8b2020}
+</style>
+</head>
+<body>
+<h1>🀄 Mahjong Scorer</h1>
+<div class="sub">LRC House Rules · Tap row to tick · Auto-calculates</div>
+<div class="tip">Order: Winning → Tile → Flowers → Eyes → Suits → Sheungs → Pongs → Honours → Gongs → Terminals → Specials</div>
+
+<footer>
+  <div class="tot">
+    <span class="tl">TOTAL</span>
+    <span class="tn" id="TN">0</span>
+    <span class="tl">pts</span>
+  </div>
+  <div class="bk" id="BK">No items selected</div>
+  <button class="btn" onclick="resetAll()">↺ Reset</button>
+</footer>
+
+<div id="app"></div>
+
+<script>
+var D=[
+{id:"s1",t:"1 · Mahjong / Winning",rows:[
+  {id:"r1a",l:"Mahjong / Winning",n:"Always add first — includes ALL hands",p:5},
+  {id:"r1b",l:"Closing / Calling",n:"Player declared closing before winning",p:5}
+]},
+{id:"s2",t:"2 · Winning Tile",rows:[
+  {id:"r2a",l:"East Seat / Dealer Tile",n:"East wins, or Dealer discards winning tile",p:1},
+  {id:"r2b",l:"Self Pick from the Wall",p:5},
+  {id:"r2c",l:"Self Pick from Flower Wall",n:"Winning tile picked from the Flower Wall",p:10},
+  {id:"r2d",l:"Concealed Hand \u2013 win from Discard",n:"NO tiles exposed except Flowers & exposed Gongs",p:10},
+  {id:"r2e",l:"Concealed Hand \u2013 Self Pick",n:"NO tiles exposed except Flowers & exposed Gongs",p:15},
+  {id:"r2f",l:"Fully Exposed \u2013 Discard \u26a0 No Closing",n:"ONLY 1 tile concealed for Pair/Eyes",p:10},
+  {id:"r2g",l:"Fully Exposed \u2013 Self Pick \u26a0 No Closing",n:"ONLY 1 tile concealed for Pair/Eyes",p:15},
+  {id:"r2h",l:"Win within 7 tiles",n:"7 or fewer tiles discarded in the sea",p:50},
+  {id:"r2i",l:"Seabed Hand",n:"Winning tile is LAST tile from the Wall (self pick only)",p:20},
+  {id:"r2j",l:"Earthly Hand",n:"1st tile discarded by East \u2014 won by South/West/North only",p:90},
+  {id:"r2k",l:"Heavenly Hand",n:"East dealt complete Mahjong before discarding",p:100}
+]},
+{id:"s3",t:"3 · Flower Tiles",rows:[
+  {id:"n3a",l:"Flower tiles held",n:"1 pt each",type:"num",max:8,each:1},
+  {id:"r3a",l:"Flower of Player's Seat (+1 bonus)",n:"Your own seat flower",p:1},
+  {id:"r3b",l:"Mixed Garden \u2014 Red & Blue flowers 1\u20134",n:"All players pay 5pts immediately when drawn",p:5},
+  {id:"r3c",l:"Pure Garden \u2014 full set Red OR Blue 1\u20134",n:"All players pay 10pts. Can combine with Mixed Garden.",p:10},
+  {id:"r3d",l:"7 Flowers \u2014 Instant Self Draw Win",p:20},
+  {id:"r3e",l:"8 Flowers \u2014 Instant Self Draw Win",n:"After 7 flowers, draws an 8th",p:40},
+  {id:"D1",type:"div",l:"Miscellaneous \u2013 No Tiles Bonuses"},
+  {id:"r3f",l:"NO Flower tiles",p:1},
+  {id:"r3g",l:"NO Wind and Dragon tiles",p:1},
+  {id:"r3h",l:"NO Flower, Wind & Dragon tiles",n:"Awarded once. Includes 1pt no Flowers + 1pt no Honours.",p:5},
+  {id:"r3i",l:"NO Flower/Wind/Dragon \u2014 ALL SHEUNG hand",n:"Includes the 5pts above. Awarded once.",p:15}
+]},
+{id:"s4",t:"4 · Waiting Tile & Eyes",rows:[
+  {id:"r4a",l:"Calling by Pairs",n:"Has 2 pairs, waiting to Pong either. Not for All Pong Hand.",p:2},
+  {id:"r4b",l:"True Single Wait",n:"Waiting for only 1 specific tile",p:2},
+  {id:"r4c",l:"Good Eyes \u2014 pair of 8s, 5s or 2s (any suit)",p:2}
+]},
+{id:"s5",t:"5 · Suit Hands",rows:[
+  {id:"r5a",l:"2 Suits \u2014 with Flowers. NO Winds & Dragons.",p:8},
+  {id:"r5b",l:"2 Suits \u2014 suit tiles ONLY. NO Flowers/Winds/Dragons.",n:"Awarded once. Includes 5pts no Flowers/Winds/Dragons.",p:15},
+  {id:"r5c",l:"Semi Pure \u2014 ONE suit with Winds and/or Dragons",n:"Mix of Pongs and Sheungs allowed",p:30},
+  {id:"r5d",l:"Pure Suit \u2014 ONE suit only. NO Winds & Dragons.",n:"Mix of Pongs and Sheungs allowed",p:90},
+  {id:"r5e",l:"ALL 5 Suits \u2014 Winds/Dragons/Bamboo/Circles/Characters",p:10}
+]},
+{id:"s6",t:"6 · Sheung Hands",rows:[
+  {id:"D2",type:"div",l:"All Sheung Hand"},
+  {id:"r6a",l:"ALL Sheung \u2014 5\xd7 Sheungs + Pair with Flowers/Winds/Dragons",p:5},
+  {id:"r6b",l:"ALL Sheung \u2014 NO Flowers, NO Winds, NO Dragons",n:"Includes 5pts above. Awarded once.",p:15},
+  {id:"D3",type:"div",l:"Step Up Sheung"},
+  {id:"r6c",l:"Step Up \u2014 3\xd7 Sheungs stepping up 1 number (any suits)",n:"e.g. 234+345+456. Claim once per hand.",p:5},
+  {id:"r6d",l:"All Step Up \u2014 all 5 Sheungs sequential (any suits)",p:20},
+  {id:"r6e",l:"All Step Up \u2014 Same Suit (+90 bonus)",p:90},
+  {id:"D4",type:"div",l:"Brother Sheungs (same sequence, same suit)"},
+  {id:"r6f",l:"2\xd7 Brother Sheungs \u2014 e.g. 678+678 Same Suit",p:5},
+  {id:"r6g",l:"3\xd7 Brother Sheungs \u2014 e.g. 456+456+456 Same Suit",p:15},
+  {id:"r6h",l:"4\xd7 Brother Sheungs \u2014 123\xd74 Same Suit",p:30},
+  {id:"D5",type:"div",l:"Sister Sheungs (same sequence, different suits)"},
+  {id:"r6i",l:"2\xd7 Sister Sheungs \u2014 e.g. 345+345 Diff Suits",p:5},
+  {id:"r6j",l:"3\xd7 Sister Sheungs \u2014 e.g. 678+678+678 Diff Suits",p:15},
+  {id:"r6k",l:"4\xd7 Sister Sheungs \u2014 Diff Suits",p:30},
+  {id:"r6l",l:"5\xd7 Sister Sheungs \u2014 Diff Suits",p:50},
+  {id:"D6",type:"div",l:"Dragon Run / Sequence (123, 456, 789)"},
+  {id:"r6m",l:"Mixed Dragon Run \u2014 Exposed/Part Concealed, ALL 3 Suits",p:8},
+  {id:"r6n",l:"Mixed Dragon Run \u2014 Concealed, ALL 3 Suits",p:10},
+  {id:"r6o",l:"Pure Dragon Run \u2014 Exposed/Part Concealed, Same Suit",p:15},
+  {id:"r6p",l:"Pure Dragon Run \u2014 Concealed, Same Suit",p:20}
+]},
+{id:"s7",t:"7 · Pong Hand",rows:[
+  {id:"r7a",l:"ALL Pong Hand \u2014 5\xd7 Pongs + Pair/Eyes",p:25},
+  {id:"r7b",l:"Pong of Wind of Player's Seat (+1)",p:1},
+  {id:"r7c",l:"Pong of Wind of the Round (+1)",p:1},
+  {id:"D7",type:"div",l:"Concealed Pongs (1 Open Gong = 1 Concealed Pong)"},
+  {id:"r7d",l:"1\xd7 Concealed Pong",p:5},
+  {id:"r7e",l:"2\xd7 Concealed Pongs",p:15},
+  {id:"r7f",l:"3\xd7 Concealed Pongs",p:30},
+  {id:"r7g",l:"4\xd7 Concealed Pongs",p:80},
+  {id:"r7h",l:"5\xd7 Concealed Pongs (with Gong)",p:100},
+  {id:"r7i",l:"5\xd7 Concealed Pongs \u2014 Self Draw / NO Gong",p:100},
+  {id:"D8",type:"div",l:"Sister Pongs (same number, different suits)"},
+  {id:"r7j",l:"2\xd7 Sister Pongs \u2014 e.g. 999+999 Diff Suits",n:"Also add Concealed Pong points",p:5},
+  {id:"r7k",l:"3\xd7 Sister Pongs \u2014 e.g. 333+333+333 Diff Suits",p:15},
+  {id:"D9",type:"div",l:"Uncle Pongs / Neighbours (sequential pongs, same suit)"},
+  {id:"r7l",l:"2\xd7 Sequential Pongs \u2014 e.g. 222+333 Same Suit",p:5},
+  {id:"r7m",l:"3\xd7 Sequential Pongs \u2014 111+222+333 Same Suit",p:15},
+  {id:"r7n",l:"4\xd7 Sequential Pongs Same Suit",p:30},
+  {id:"r7o",l:"5\xd7 Sequential Pongs Same Suit",p:60},
+  {id:"r7p",l:"5\xd7 Sequential Pongs + Pair in order \u2014 e.g. 111\u2013555 + 66",p:80}
+]},
+{id:"s8",t:"8 · Wind & Dragon Tiles",rows:[
+  {id:"n8a",l:"Pong(s) of Winds",n:"1 pt each",type:"num",max:4,each:1},
+  {id:"r8a",l:"Pong of Wind of Player's Seat (+1)",p:1},
+  {id:"r8b",l:"Pong of Wind of the Round (+1)",p:1},
+  {id:"r8c",l:"Little Three Winds \u2014 2\xd7 Pongs + 1\xd7 Pair of Winds",p:15},
+  {id:"r8d",l:"Big Three Winds \u2014 3\xd7 Pongs of Winds",p:30},
+  {id:"r8e",l:"Little Four Winds \u2014 3\xd7 Pongs + 1\xd7 Pair of Winds",p:60},
+  {id:"r8f",l:"Big Four Winds \u2014 4\xd7 Pongs of Winds",p:80},
+  {id:"D10",type:"div",l:"Dragon Tiles"},
+  {id:"n8b",l:"Pong(s) of Dragons",n:"2 pts each",type:"num",max:3,each:2},
+  {id:"r8g",l:"Little Dragons \u2014 2\xd7 Pongs + 1\xd7 Pair of Dragons",p:20},
+  {id:"r8h",l:"Big Dragons \u2014 3\xd7 Pongs of Dragons",p:40}
+]},
+{id:"s9",t:"9 · Gongs (Four of Same Tile)",rows:[
+  {id:"n9a",l:"Open Gong(s)",n:"1pt each — all Gongs count as 1 Concealed Pong",type:"num",max:4,each:1},
+  {id:"n9b",l:"Concealed Gong(s)",n:"1pt each + immediate 5pts from all players when drawn",type:"num",max:4,each:1},
+  {id:"r9a",l:"Win by Robbing a Gong",n:"Player who exposed initial Gong pays +10pts",p:10},
+  {id:"r9b",l:"Win by Self Drawing a Gong",n:"Gong \u2192 Flower Wall \u2192 Gong \u2192 Flower Wall \u2192 Self Draw",p:30},
+  {id:"D11",type:"div",l:"Gong / Four in Multiple Ways"},
+  {id:"r9c",l:"Gong/Four in 2 Ways",p:5},
+  {id:"r9d",l:"Gong/Four in 3 Ways",p:15},
+  {id:"r9e",l:"Gong/Four in 4 Ways",p:20}
+]},
+{id:"s10",t:"10 · Terminals",rows:[
+  {id:"r10a",l:"NO Terminals \u2014 NO 1s & 9s with Honour Pong/Pair",p:5},
+  {id:"r10b",l:"NO Terminals \u2014 NO 1s & 9s AND NO Honours",p:8},
+  {id:"r10c",l:"Terminals Only WITH Honour tiles",n:"Terminal Pongs/Sheungs + Honours. Eyes: 1, 9 or Honours.",p:20},
+  {id:"r10d",l:"Terminals Only \u2014 NO Honour tiles. Eyes: 1 or 9.",p:40},
+  {id:"r10e",l:"1\xd7 Terminal Pong Set \u2014 111+999 Same Suit",p:5},
+  {id:"r10f",l:"2\xd7 Terminal Pong Sets \u2014 111+999 Same Suit",p:20},
+  {id:"r10g",l:"1\xd7 Terminal Sheung Set \u2014 123+789 Same Suit",p:5},
+  {id:"r10h",l:"2\xd7 Terminal Pure Sheung (2 suits) \u2014 123+789 each same suit",p:20},
+  {id:"r10i",l:"2\xd7 Terminal Pure Sheung \u2014 ALL same suit",p:20}
+]},
+{id:"s11",t:"11 · Special Hands",rows:[
+  {id:"D12",type:"div",l:"Nico Nico \u2014 7 pairs + 1 Pong (NO Closing)"},
+  {id:"r11a",l:"Nico Nico \u2014 7\xd7 pairs + 1\xd7 Pong (fully concealed)",n:"All self drawn except Mahjong tile. No Closing.",p:40},
+  {id:"r11b",l:"Nico Nico + 1 Gong (+10)",p:10},
+  {id:"r11c",l:"Nico Nico + 2 Gongs (+25)",p:25},
+  {id:"D13",type:"div",l:"16 Orphans Hand (NO Closing)"},
+  {id:"r11d",l:"16 Orphans \u2014 3\xd7 Sheungs + 1 each Wind/Dragon + Pair",n:"Fully concealed. No Closing.",p:50},
+  {id:"r11e",l:"16 Orphans + 1s & 9s in ALL suits (+10)",p:10},
+  {id:"D14",type:"div",l:"Gem Hands (+ add 30pts Semi Pure separately)"},
+  {id:"r11f",l:"Jade \u2014 Green Dragons + Bamboo only",n:"+ 30pts Semi Pure Hand",p:20},
+  {id:"r11g",l:"Ruby \u2014 Red Dragons + Character only",n:"+ 30pts Semi Pure Hand",p:20},
+  {id:"r11h",l:"Diamond \u2014 White Dragons + Circle only",n:"+ 30pts Semi Pure Hand",p:20}
+]}
+];
+
+// State
+var checked={}, nums={}, open={};
+
+function recalc(){
+  var total=0, parts=[];
+  D.forEach(function(sec){
+    var st=0;
+    sec.rows.forEach(function(r){
+      if(r.type==='div') return;
+      if(r.type==='num'){
+        var v=nums[r.id]||0, pts=v*r.each;
+        if(pts>0){total+=pts;st+=pts;parts.push(r.l+'='+pts);}
+      } else if(checked[r.id]){
+        total+=r.p;st+=r.p;
+        parts.push(r.l.replace(/[\u26a0+]/g,'').trim().substring(0,22)+'='+r.p);
+      }
+    });
+    var el=document.getElementById('sp-'+sec.id);
+    if(el) el.textContent=st>0?st:'';
+  });
+  document.getElementById('TN').textContent=total;
+  document.getElementById('BK').textContent=parts.length?parts.join(' \u00b7 '):'No items selected';
+}
+
+function tap(id,pts){
+  checked[id]=!checked[id];
+  var el=document.getElementById('rl-'+id);
+  if(el){
+    if(checked[id]) el.classList.add('on'); else el.classList.remove('on');
+    var box=el.querySelector('.box');
+    if(box) box.textContent=checked[id]?'\u2713':'';
+  }
+  recalc();
+}
+
+function numChange(id,val,max,each,secId){
+  var v=Math.max(0,Math.min(max,parseInt(val)||0));
+  nums[id]=v;
+  var ni=document.getElementById('ni-'+id);
+  if(ni) ni.value=v;
+  recalc();
+}
+
+function toggleSec(id){
+  open[id]=!open[id];
+  var sb=document.getElementById('sb-'+id);
+  var arr=document.getElementById('arr-'+id);
+  if(sb) sb.style.display=open[id]?'block':'none';
+  if(arr) arr.style.transform=open[id]?'rotate(180deg)':'rotate(0deg)';
+}
+
+function resetAll(){
+  checked={};nums={};
+  document.querySelectorAll('.rl').forEach(function(el){
+    el.classList.remove('on');
+    var box=el.querySelector('.box');
+    if(box) box.textContent='';
+  });
+  document.querySelectorAll('.ni').forEach(function(n){n.value=0;});
+  recalc();
+}
+
+// Render
+var html='';
+D.forEach(function(sec){
+  html+='<div class="sec">';
+  html+='<div class="sh" onclick="toggleSec(\''+sec.id+'\')">';
+  html+='<span class="st">'+sec.t+'</span>';
+  html+='<div class="sr"><span class="sp" id="sp-'+sec.id+'"></span>';
+  html+='<span class="arr" id="arr-'+sec.id+'">&#9660;</span></div></div>';
+  html+='<div class="sb" id="sb-'+sec.id+'" style="display:none">';
+  sec.rows.forEach(function(r){
+    if(r.type==='div'){
+      html+='<div class="div">'+r.l+'</div>';
+    } else if(r.type==='num'){
+      html+='<div class="numrow">';
+      html+='<input class="ni" id="ni-'+r.id+'" type="number" min="0" max="'+r.max+'" value="0" ';
+      html+='oninput="numChange(\''+r.id+'\',this.value,'+r.max+','+r.each+',\''+sec.id+'\')">';
+      html+='<span class="nlbl">'+r.l+(r.n?'<span class="note">'+r.n+'</span>':'')+'</span>';
+      html+='</div>';
+    } else {
+      html+='<div class="row"><div class="rl" id="rl-'+r.id+'" onclick="tap(\''+r.id+'\','+r.p+')">';
+      html+='<span class="box"></span>';
+      html+='<span class="lbl">'+r.l+(r.n?'<span class="note">'+r.n+'</span>':'')+'</span>';
+      html+='<span class="pts">'+r.p+'</span>';
+      html+='</div></div>';
+    }
+  });
+  html+='</div></div>';
+});
+document.getElementById('app').innerHTML=html;
+</script>
+</body>
+</html>
